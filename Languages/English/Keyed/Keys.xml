@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+    <RDH.RadiusOnly>Radius only</RDH.RadiusOnly>
+    <RDH.RadiusOnlyDesc>If enabled, resource requirements will only show for buildings near the mouse cursor.</RDH.RadiusOnlyDesc>
+</LanguageData>
