@@ -54,6 +54,11 @@ namespace ResourceDeliveryHelper
 
 		private static void DrawRequirement(ResourceDeliveryCache.CachedRequirement req)
 		{
+			if (req.isWorkStarted)
+			{
+				return;
+			}
+
 			if (req.isComplete)
 			{
 				var color = GUI.color;

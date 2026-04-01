@@ -34,6 +34,7 @@ namespace ResourceDeliveryHelper
             public Texture2D cachedIconTexture;
             public bool cachedIsVisible;
             public int cachedMouseCellHash;
+            public bool isWorkStarted;
         }
 
         public static CachedRequirement Get(Thing thing)
@@ -124,6 +125,10 @@ namespace ResourceDeliveryHelper
             }
 
             var frame = thing as Frame;
+            if (frame != null)
+            {
+                req.isWorkStarted = frame.workDone > 0f;
+            }
             foreach (var cost in costs)
             {
                 int countNeeded = cost.count;
