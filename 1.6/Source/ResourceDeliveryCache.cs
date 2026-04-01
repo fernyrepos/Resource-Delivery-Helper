@@ -87,7 +87,7 @@ namespace ResourceDeliveryHelper
             else
             {
                 var occupiedRect = thing.OccupiedRect();
-                var expandedRect = occupiedRect.ExpandedBy(radius);
+                var expandedRect = occupiedRect.ExpandedBy(radius - 1);
                 isVisible = mouseCell.InBounds(map) && expandedRect.Contains(mouseCell);
             }
             req.cachedIsVisible = isVisible;
