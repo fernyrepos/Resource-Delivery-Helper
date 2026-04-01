@@ -34,7 +34,6 @@ namespace ResourceDeliveryHelper
             public Texture2D cachedIconTexture;
             public bool cachedIsVisible;
             public int cachedMouseCellHash;
-            public bool cachedRadiusOnly;
         }
 
         public static CachedRequirement Get(Thing thing)
@@ -73,25 +72,23 @@ namespace ResourceDeliveryHelper
 
             var mouseCell = UI.MouseCell();
             var mouseCellHash = mouseCell.GetHashCode();
-            var radiusOnly = ResourceDeliveryHelperMod.Settings.radiusOnly;
 
-            if (req.cachedMouseCellHash == mouseCellHash && req.cachedRadiusOnly == radiusOnly)
+            if (req.cachedMouseCellHash == mouseCellHash)
             {
                 return req.cachedIsVisible;
             }
             bool isVisible;
-            if (radiusOnly)
+            if (ResourceDeliveryHelperMod.Settings.displayRadius > 10f)
             {
-                isVisible = mouseCell.InBounds(map) && mouseCell.DistanceTo(thing.Position) <= ResourceDeliverySettings.DisplayRadius;
+                isVisible = mouseCell.InBounds(map);
             }
             else
             {
-                isVisible = thing.OccupiedRect().Contains(mouseCell);
+                isVisible = mouseCell.InBounds(map) && mouseCell.DistanceTo(thing.Position) <= ResourceDeliveryHelperMod.Settings.displayRadius;
             }
 
             req.cachedIsVisible = isVisible;
             req.cachedMouseCellHash = mouseCellHash;
-            req.cachedRadiusOnly = radiusOnly;
             cache[thing.thingIDNumber] = req;
 
             return isVisible;
