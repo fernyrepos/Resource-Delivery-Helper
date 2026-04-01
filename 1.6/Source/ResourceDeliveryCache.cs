@@ -97,9 +97,10 @@ namespace ResourceDeliveryHelper
         public static void CalculateRects(ref CachedRequirement req, Thing thing)
         {
             var drawPos = GenMapUI.LabelDrawPosFor(thing, 0);
-            var scale = Prefs.UIScale;
-            req.cachedRect = new Rect(drawPos.x - 14f * scale, drawPos.y - 14f * scale, 28f * scale, 28f * scale);
-            req.cachedLabelRect = new Rect(req.cachedRect.xMax - 4f * scale, req.cachedRect.yMax - 12f * scale, 30f * scale, 16f * scale);
+            var cellSize = UI.CurUICellSize();
+            var iconSize = cellSize * 0.8f;
+            req.cachedRect = new Rect(drawPos.x - iconSize / 2f, drawPos.y - iconSize / 2f, iconSize, iconSize);
+            req.cachedLabelRect = new Rect(req.cachedRect.xMax - cellSize * 0.1f, req.cachedRect.yMax - cellSize * 0.3f, cellSize, cellSize);
         }
 
         private static CachedRequirement Calculate(Thing thing)
