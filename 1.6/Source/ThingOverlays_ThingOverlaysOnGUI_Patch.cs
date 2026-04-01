@@ -61,9 +61,8 @@ namespace ResourceDeliveryHelper
 			{
 				GUI.DrawTexture(req.cachedRect, req.cachedIconTexture);
 				Text.Font = GameFont.Tiny;
-				Text.Anchor = TextAnchor.MiddleLeft;
-				Widgets.Label(req.cachedLabelRect, req.cachedCountString);
 				Text.Anchor = TextAnchor.UpperLeft;
+				Widgets.Label(req.cachedLabelRect, req.cachedCountString);
 			}
 		}
 	}
