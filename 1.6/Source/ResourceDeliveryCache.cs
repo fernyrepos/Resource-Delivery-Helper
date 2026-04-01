@@ -100,7 +100,7 @@ namespace ResourceDeliveryHelper
             var cellSize = UI.CurUICellSize();
             var iconSize = cellSize * 0.4f;
             req.cachedRect = new Rect(drawPos.x - iconSize / 2f, drawPos.y - iconSize / 2f, iconSize, iconSize);
-            req.cachedLabelRect = new Rect(req.cachedRect.xMax - cellSize * 0.1f, req.cachedRect.yMax - cellSize * 0.3f, cellSize, cellSize);
+            req.cachedLabelRect = new Rect(req.cachedRect.xMax + cellSize * 0.1f, req.cachedRect.yMax, cellSize, cellSize);
         }
 
         private static CachedRequirement Calculate(Thing thing)
