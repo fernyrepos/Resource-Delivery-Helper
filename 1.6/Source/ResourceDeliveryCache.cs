@@ -77,19 +77,19 @@ namespace ResourceDeliveryHelper
             {
                 return req.cachedIsVisible;
             }
+
             bool isVisible;
-            if (ResourceDeliveryHelperMod.Settings.displayRadius > 10f)
+            var radius = (int)ResourceDeliveryHelperMod.Settings.displayRadius;
+            if (radius > 10)
             {
                 isVisible = mouseCell.InBounds(map);
             }
             else
             {
                 var occupiedRect = thing.OccupiedRect();
-                var radius = (int)ResourceDeliveryHelperMod.Settings.displayRadius - 1;
-                var expandedRect = new CellRect(occupiedRect.minX - radius, occupiedRect.minZ - radius, occupiedRect.maxX + radius, occupiedRect.maxZ + radius);
+                var expandedRect = occupiedRect.ExpandedBy(radius);
                 isVisible = mouseCell.InBounds(map) && expandedRect.Contains(mouseCell);
             }
-
             req.cachedIsVisible = isVisible;
             req.cachedMouseCellHash = mouseCellHash;
             cache[thing.thingIDNumber] = req;
