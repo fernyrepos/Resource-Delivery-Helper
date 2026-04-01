@@ -84,7 +84,7 @@ namespace ResourceDeliveryHelper
             }
             else
             {
-                isVisible = mouseCell.InBounds(map) && mouseCell.DistanceTo(thing.Position) <= ResourceDeliveryHelperMod.Settings.displayRadius;
+                isVisible = mouseCell.InBounds(map) && mouseCell.DistanceTo(thing.Position) <= ResourceDeliveryHelperMod.Settings.displayRadius - 1f;
             }
 
             req.cachedIsVisible = isVisible;
