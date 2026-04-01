@@ -6,6 +6,7 @@ using Verse;
 
 namespace ResourceDeliveryHelper
 {
+	[HotSwappable]
 	[HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
 	public static class ThingOverlays_ThingOverlaysOnGUI_Patch
 	{
@@ -55,14 +56,19 @@ namespace ResourceDeliveryHelper
 		{
 			if (req.isComplete)
 			{
+				var color = GUI.color;
+				GUI.color = new Color(1f, 1f, 1f, 0.25f);
 				GUI.DrawTexture(req.cachedRect, Widgets.CheckboxOnTex);
+				GUI.color = color;
 			}
 			else if (req.resource != null)
 			{
 				GUI.DrawTexture(req.cachedRect, req.cachedIconTexture);
 				Text.Font = GameFont.Tiny;
 				Text.Anchor = TextAnchor.UpperLeft;
-				Widgets.Label(req.cachedLabelRect, req.cachedCountString);
+				var scaledStyle = new GUIStyle(Text.CurFontStyle);
+				scaledStyle.fontSize = Mathf.RoundToInt(UI.CurUICellSize() / 4f);
+				GUI.Label(req.cachedLabelRect, req.cachedCountString, scaledStyle);
 			}
 		}
 	}
