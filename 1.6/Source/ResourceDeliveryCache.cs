@@ -34,7 +34,6 @@ namespace ResourceDeliveryHelper
             public Texture2D cachedIconTexture;
             public bool cachedIsVisible;
             public int cachedMouseCellHash;
-            public bool isWorkStarted;
         }
 
         public static CachedRequirement Get(Thing thing)
@@ -65,6 +64,11 @@ namespace ResourceDeliveryHelper
 
         public static bool ShouldDisplay(Thing thing, Map map)
         {
+            if (thing is Frame frame && frame.workDone > 0f)
+            {
+                return false;
+            }
+
             if (!cache.TryGetValue(thing.thingIDNumber, out var req))
             {
                 req = Calculate(thing);
@@ -125,10 +129,6 @@ namespace ResourceDeliveryHelper
             }
 
             var frame = thing as Frame;
-            if (frame != null)
-            {
-                req.isWorkStarted = frame.workDone > 0f;
-            }
             foreach (var cost in costs)
             {
                 int countNeeded = cost.count;
