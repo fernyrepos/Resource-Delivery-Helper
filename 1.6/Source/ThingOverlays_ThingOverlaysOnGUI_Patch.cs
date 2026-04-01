@@ -68,7 +68,10 @@ namespace ResourceDeliveryHelper
 				Text.Anchor = TextAnchor.UpperLeft;
 				var scaledStyle = new GUIStyle(Text.CurFontStyle);
 				scaledStyle.fontSize = Mathf.RoundToInt(UI.CurUICellSize() / 4f);
+				var color = GUI.color;
+				GUI.color = req.resource.uiIconColor;
 				GUI.Label(req.cachedLabelRect, req.cachedCountString, scaledStyle);
+				GUI.color = color;
 			}
 		}
 	}
