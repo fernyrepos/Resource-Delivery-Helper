@@ -63,15 +63,16 @@ namespace ResourceDeliveryHelper
 			}
 			else if (req.resource != null)
 			{
+				var color = GUI.color;
+				GUI.color = req.resource.uiIconColor;
 				GUI.DrawTexture(req.cachedRect, req.cachedIconTexture);
+				GUI.color = color;
+
 				Text.Font = GameFont.Tiny;
 				Text.Anchor = TextAnchor.UpperLeft;
 				var scaledStyle = new GUIStyle(Text.CurFontStyle);
 				scaledStyle.fontSize = Mathf.RoundToInt(UI.CurUICellSize() / 4f);
-				var color = GUI.color;
-				GUI.color = req.resource.uiIconColor;
 				GUI.Label(req.cachedLabelRect, req.cachedCountString, scaledStyle);
-				GUI.color = color;
 			}
 		}
 	}
