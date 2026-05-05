@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -13,7 +14,7 @@ namespace ResourceDeliveryHelper
 		public static void Postfix()
 		{
 			var map = Find.CurrentMap;
-			var constructibles = map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Concat(map.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame));
+			var constructibles = map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Where(t => !(t is Blueprint_Install)).Concat(map.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame));
 			if (constructibles.Any())
 			{
 				var currentViewRect = Find.CameraDriver.CurrentViewRect;
