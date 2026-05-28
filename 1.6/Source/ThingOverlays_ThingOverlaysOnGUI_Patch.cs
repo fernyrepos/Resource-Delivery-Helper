@@ -1,7 +1,7 @@
-using System;
-using System.Linq;
 using HarmonyLib;
 using RimWorld;
+using System;
+using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -13,18 +13,28 @@ namespace ResourceDeliveryHelper
 	{
 		public static void Postfix()
 		{
+            var mouseCell = UI.MouseCell();
 			var map = Find.CurrentMap;
-			var constructibles = map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Where(t => !(t is Blueprint_Install)).Concat(map.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame));
-			if (constructibles.Any())
-			{
-				var currentViewRect = Find.CameraDriver.CurrentViewRect;
-				var currentCameraHash = HashCode.Combine(Find.CameraDriver.rootPos.GetHashCode(), Find.CameraDriver.rootSize.GetHashCode());
-				foreach (var constructible in constructibles)
-				{
-					TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
-				}
-			}
-		}
+
+            var currentViewRect = Find.CameraDriver.CurrentViewRect;
+            var currentCameraHash = HashCode.Combine(Find.CameraDriver.rootPos.GetHashCode(), Find.CameraDriver.rootSize.GetHashCode());
+
+            foreach (IntVec3 cell in GenRadial.RadialCellsAround(mouseCell, (int)ResourceDeliveryHelperMod.Settings.displayRadius, true))
+            {
+                if (!cell.InBounds(map))
+                    continue;
+
+                var constructibles = cell.GetThingList(Find.CurrentMap).Where(t => t is not Blueprint_Install || t is Frame);
+
+                if (constructibles.Any())
+                {
+                    foreach (var constructible in constructibles)
+                    {
+                        TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
+                    }
+                }
+            }
+        }
 
 		private static void TryDisplayOverlay(Thing thing, CellRect currentViewRect, Map map, int currentCameraHash)
 		{
