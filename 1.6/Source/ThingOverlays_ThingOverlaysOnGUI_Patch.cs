@@ -13,22 +13,39 @@ namespace ResourceDeliveryHelper
 	{
 		public static void Postfix()
 		{
-            var mouseCell = UI.MouseCell();
-			var map = Find.CurrentMap;
+            var map = Find.CurrentMap;
+            var displayRadius = ResourceDeliveryHelperMod.Settings.displayRadius;
 
             var currentViewRect = Find.CameraDriver.CurrentViewRect;
             var currentCameraHash = HashCode.Combine(Find.CameraDriver.rootPos.GetHashCode(), Find.CameraDriver.rootSize.GetHashCode());
 
-            foreach (IntVec3 cell in GenRadial.RadialCellsAround(mouseCell, ResourceDeliveryHelperMod.Settings.displayRadius, true))
-            {
-                if (!cell.InBounds(map))
-                    continue;
+            if (displayRadius <= 10)
+			{
+                var mouseCell = UI.MouseCell();
 
-                var constructibles = cell.GetThingList(map).Where(t => (t is Blueprint || t is Frame) && t is not Blueprint_Install);
-
-                foreach (var constructible in constructibles)
+                foreach (IntVec3 cell in GenRadial.RadialCellsAround(mouseCell, displayRadius, true))
                 {
-                    TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
+                    if (!cell.InBounds(map))
+                        continue;
+
+                    var constructibles = cell.GetThingList(map).Where(t => (t is Blueprint || t is Frame) && t is not Blueprint_Install);
+
+                    foreach (var constructible in constructibles)
+                    {
+                        TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
+                    }
+                }
+            }
+			else
+			{
+                var constructibles = map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Where(t => !(t is Blueprint_Install)).Concat(map.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame));
+
+                if (constructibles.Any())
+                {
+                    foreach (var constructible in constructibles)
+                    {
+                        TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
+                    }
                 }
             }
         }
