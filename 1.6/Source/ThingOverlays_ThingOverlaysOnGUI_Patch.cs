@@ -19,19 +19,16 @@ namespace ResourceDeliveryHelper
             var currentViewRect = Find.CameraDriver.CurrentViewRect;
             var currentCameraHash = HashCode.Combine(Find.CameraDriver.rootPos.GetHashCode(), Find.CameraDriver.rootSize.GetHashCode());
 
-            foreach (IntVec3 cell in GenRadial.RadialCellsAround(mouseCell, (int)ResourceDeliveryHelperMod.Settings.displayRadius, true))
+            foreach (IntVec3 cell in GenRadial.RadialCellsAround(mouseCell, ResourceDeliveryHelperMod.Settings.displayRadius, true))
             {
                 if (!cell.InBounds(map))
                     continue;
 
-                var constructibles = cell.GetThingList(Find.CurrentMap).Where(t => t is not Blueprint_Install || t is Frame);
+                var constructibles = cell.GetThingList(map).Where(t => (t is Blueprint || t is Frame) && t is not Blueprint_Install);
 
-                if (constructibles.Any())
+                foreach (var constructible in constructibles)
                 {
-                    foreach (var constructible in constructibles)
-                    {
-                        TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
-                    }
+                    TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
                 }
             }
         }
