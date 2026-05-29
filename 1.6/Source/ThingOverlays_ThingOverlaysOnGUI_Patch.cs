@@ -62,6 +62,7 @@ namespace ResourceDeliveryHelper
 
 		private static void AddConstructibles(List<Thing> things, Map map, IntVec3 mouseCell, bool filterByRadius, int radius)
 		{
+			float radiusSq = radius * radius;
 			for (int i = 0; i < things.Count; i++)
 			{
 				var t = things[i];
@@ -71,8 +72,18 @@ namespace ResourceDeliveryHelper
 					continue;
 				if (t is Frame frame && frame.workDone > 0f)
 					continue;
-				if (filterByRadius && !t.OccupiedRect().ExpandedBy(radius - 1).Contains(mouseCell))
-					continue;
+
+				if (filterByRadius)
+				{
+					CellRect rect = t.OccupiedRect();
+					int closestX = Mathf.Clamp(mouseCell.x, rect.minX, rect.maxX);
+					int closestZ = Mathf.Clamp(mouseCell.z, rect.minZ, rect.maxZ);
+					float dx = closestX - mouseCell.x;
+					float dz = closestZ - mouseCell.z;
+					if (dx * dx + dz * dz > radiusSq)
+						continue;
+				}
+
 				drawList.Add(t);
 			}
 		}
