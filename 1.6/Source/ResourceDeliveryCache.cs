@@ -32,74 +32,27 @@ namespace ResourceDeliveryHelper
             public Rect cachedRect;
             public Rect cachedLabelRect;
             public Texture2D cachedIconTexture;
-            public bool cachedIsVisible;
-            public int cachedMouseCellHash;
         }
 
         public static CachedRequirement Get(Thing thing)
         {
-            if (cache.TryGetValue(thing.thingIDNumber, out var req))
+            if (!cache.TryGetValue(thing.thingIDNumber, out var req))
             {
-                var cameraHash = CameraHash();
-                if (req.cachedCameraPositionHash == cameraHash)
-                {
-                    return req;
-                }
+                req = Calculate(thing);
+                cache[thing.thingIDNumber] = req;
             }
-
-            req = Calculate(thing);
-            cache[thing.thingIDNumber] = req;
             return req;
         }
 
         public static void Clear(Thing thing)
         {
             cache.Remove(thing.thingIDNumber);
+            ThingOverlays_ThingOverlaysOnGUI_Patch.cachedMouseCellHash = 0;
         }
 
         public static void Update(Thing thing, CachedRequirement req)
         {
             cache[thing.thingIDNumber] = req;
-        }
-
-        public static bool ShouldDisplay(Thing thing, Map map)
-        {
-            if (thing is Frame frame && frame.workDone > 0f)
-            {
-                return false;
-            }
-
-            if (!cache.TryGetValue(thing.thingIDNumber, out var req))
-            {
-                req = Calculate(thing);
-                cache[thing.thingIDNumber] = req;
-            }
-
-            var mouseCell = UI.MouseCell();
-            var mouseCellHash = mouseCell.GetHashCode();
-
-            if (req.cachedMouseCellHash == mouseCellHash)
-            {
-                return req.cachedIsVisible;
-            }
-
-            bool isVisible;
-            var radius = (int)ResourceDeliveryHelperMod.Settings.displayRadius;
-            if (radius > 10)
-            {
-                isVisible = mouseCell.InBounds(map);
-            }
-            else
-            {
-                var occupiedRect = thing.OccupiedRect();
-                var expandedRect = occupiedRect.ExpandedBy(radius - 1);
-                isVisible = mouseCell.InBounds(map) && expandedRect.Contains(mouseCell);
-            }
-            req.cachedIsVisible = isVisible;
-            req.cachedMouseCellHash = mouseCellHash;
-            cache[thing.thingIDNumber] = req;
-
-            return isVisible;
         }
 
         public static void CalculateRects(ref CachedRequirement req, Thing thing)

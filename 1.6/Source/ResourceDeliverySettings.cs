@@ -5,6 +5,7 @@ namespace ResourceDeliveryHelper
 {
     public class ResourceDeliverySettings : ModSettings
     {
+        public const float AllTilesThreshold = 10f;
         public float displayRadius = 1f;
 
         public override void ExposeData()
@@ -17,7 +18,7 @@ namespace ResourceDeliveryHelper
         {
             var list = new Listing_Standard();
             list.Begin(inRect);
-            string radiusLabel = displayRadius > 10f ? "RDH.AllTiles".Translate() : "RDH.DisplayRadius".Translate(displayRadius.ToString("F0"));
+            string radiusLabel = displayRadius > AllTilesThreshold ? "RDH.AllTiles".Translate() : "RDH.DisplayRadius".Translate(displayRadius.ToString("F0"));
             list.Label(radiusLabel);
             displayRadius = list.Slider(displayRadius, 1f, 11f);
             list.End();
