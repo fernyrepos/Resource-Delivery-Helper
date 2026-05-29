@@ -1,9 +1,9 @@
 using HarmonyLib;
 using RimWorld;
-using System;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
+using System;
 
 namespace ResourceDeliveryHelper
 {
@@ -11,69 +11,69 @@ namespace ResourceDeliveryHelper
 	[HarmonyPatch(typeof(ThingOverlays), nameof(ThingOverlays.ThingOverlaysOnGUI))]
 	public static class ThingOverlays_ThingOverlaysOnGUI_Patch
 	{
+		private static readonly List<Thing> drawList = new List<Thing>();
+		internal static int cachedMouseCellHash;
+		private static GUIStyle cachedLabelStyle;
+		private static int cachedLabelStyleSize = -1;
+
 		public static void Postfix()
 		{
-            var map = Find.CurrentMap;
-            var displayRadius = ResourceDeliveryHelperMod.Settings.displayRadius;
+			var map = Find.CurrentMap;
+			var mouseCell = UI.MouseCell();
+			var mouseCellHash = HashCode.Combine(mouseCell.GetHashCode(), map.uniqueID);
+			var currentViewRect = Find.CameraDriver.CurrentViewRect;
+			var currentCameraHash = HashCode.Combine(
+				Find.CameraDriver.rootPos.GetHashCode(),
+				Find.CameraDriver.rootSize.GetHashCode());
 
-            var currentViewRect = Find.CameraDriver.CurrentViewRect;
-            var currentCameraHash = HashCode.Combine(Find.CameraDriver.rootPos.GetHashCode(), Find.CameraDriver.rootSize.GetHashCode());
-
-            if (displayRadius <= 10)
+			if (mouseCellHash != cachedMouseCellHash)
 			{
-                var mouseCell = UI.MouseCell();
-
-                foreach (IntVec3 cell in GenRadial.RadialCellsAround(mouseCell, displayRadius, true))
-                {
-                    if (!cell.InBounds(map))
-                        continue;
-
-                    var constructibles = cell.GetThingList(map).Where(t => (t is Blueprint || t is Frame) && t is not Blueprint_Install);
-
-                    foreach (var constructible in constructibles)
-                    {
-                        TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
-                    }
-                }
-            }
-			else
-			{
-                var constructibles = map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint).Where(t => !(t is Blueprint_Install)).Concat(map.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame));
-
-                if (constructibles.Any())
-                {
-                    foreach (var constructible in constructibles)
-                    {
-                        TryDisplayOverlay(constructible, currentViewRect, map, currentCameraHash);
-                    }
-                }
-            }
-        }
-
-		private static void TryDisplayOverlay(Thing thing, CellRect currentViewRect, Map map, int currentCameraHash)
-		{
-			if (!currentViewRect.Contains(thing.Position) || map.fogGrid.IsFogged(thing.Position))
-			{
-				return;
+				cachedMouseCellHash = mouseCellHash;
+				RebuildDrawList(map, mouseCell);
 			}
 
-			if (!ResourceDeliveryCache.ShouldDisplay(thing, map))
+			for (int i = 0; i < drawList.Count; i++)
 			{
-				return;
+				var thing = drawList[i];
+				if (!currentViewRect.Contains(thing.Position))
+					continue;
+				var req = ResourceDeliveryCache.Get(thing);
+				if (req.cachedCameraPositionHash != currentCameraHash)
+				{
+					ResourceDeliveryCache.CalculateRects(ref req, thing);
+					req.cachedCameraPositionHash = currentCameraHash;
+					ResourceDeliveryCache.Update(thing, req);
+				}
+				DrawRequirement(req);
 			}
-
-			var req = ResourceDeliveryCache.Get(thing);
-			UpdateCachedRectsIfCameraMoved(req, currentCameraHash, thing);
-			DrawRequirement(req);
 		}
 
-		private static void UpdateCachedRectsIfCameraMoved(ResourceDeliveryCache.CachedRequirement req, int currentCameraHash, Thing thing)
+		private static void RebuildDrawList(Map map, IntVec3 mouseCell)
 		{
-			if (req.cachedCameraPositionHash != currentCameraHash)
+			drawList.Clear();
+			var displayRadius = ResourceDeliveryHelperMod.Settings.displayRadius;
+			bool filterByRadius = displayRadius <= ResourceDeliverySettings.AllTilesThreshold;
+			int radius = Mathf.RoundToInt(displayRadius);
+			var blueprints = map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint);
+			var frames = map.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame);
+			AddConstructibles(blueprints, map, mouseCell, filterByRadius, radius);
+			AddConstructibles(frames, map, mouseCell, filterByRadius, radius);
+		}
+
+		private static void AddConstructibles(List<Thing> things, Map map, IntVec3 mouseCell, bool filterByRadius, int radius)
+		{
+			for (int i = 0; i < things.Count; i++)
 			{
-				ResourceDeliveryCache.CalculateRects(ref req, thing);
-				req.cachedCameraPositionHash = currentCameraHash;
-				ResourceDeliveryCache.Update(thing, req);
+				var t = things[i];
+				if (t is Blueprint_Install)
+					continue;
+				if (map.fogGrid.IsFogged(t.Position))
+					continue;
+				if (t is Frame frame && frame.workDone > 0f)
+					continue;
+				if (filterByRadius && !t.OccupiedRect().ExpandedBy(radius - 1).Contains(mouseCell))
+					continue;
+				drawList.Add(t);
 			}
 		}
 
@@ -93,11 +93,16 @@ namespace ResourceDeliveryHelper
 				GUI.DrawTexture(req.cachedRect, req.cachedIconTexture);
 				GUI.color = color;
 
+				var fontSize = Mathf.RoundToInt(UI.CurUICellSize() / 4f);
+				if (cachedLabelStyle == null || cachedLabelStyleSize != fontSize)
+				{
+					cachedLabelStyle = new GUIStyle(Text.CurFontStyle) { fontSize = fontSize };
+					cachedLabelStyleSize = fontSize;
+				}
+
 				Text.Font = GameFont.Tiny;
 				Text.Anchor = TextAnchor.UpperLeft;
-				var scaledStyle = new GUIStyle(Text.CurFontStyle);
-				scaledStyle.fontSize = Mathf.RoundToInt(UI.CurUICellSize() / 4f);
-				GUI.Label(req.cachedLabelRect, req.cachedCountString, scaledStyle);
+				GUI.Label(req.cachedLabelRect, req.cachedCountString, cachedLabelStyle);
 			}
 		}
 	}
